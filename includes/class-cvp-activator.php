@@ -23,5 +23,6 @@ class CVP_Activator {
 	 */
 	public static function activate() {
 		CVP_Database::install();
+		add_option( CVP_OPTION_FRONTEND_DISPLAY_LANGUAGE, 'en' );
 	}
 }

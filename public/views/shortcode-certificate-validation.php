@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div class="cvp-certificate-validation">
 	<form class="cvp-validation-form" novalidate>
 		<label class="cvp-screen-reader-text" for="<?php echo esc_attr( $input_id ); ?>">
-			<?php echo esc_html__( 'Certificate code', 'certificate-validation-plugin' ); ?>
+			<?php echo esc_html( $view_strings['field_label'] ); ?>
 		</label>
 		<div class="cvp-form-row">
 			<input
@@ -20,10 +20,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 				id="<?php echo esc_attr( $input_id ); ?>"
 				class="cvp-input"
 				name="code"
-				placeholder="<?php echo esc_attr__( 'Enter certificate number', 'certificate-validation-plugin' ); ?>"
+				placeholder="<?php echo esc_attr( $view_strings['placeholder'] ); ?>"
 			/>
 			<button type="submit" class="cvp-button">
-				<?php echo esc_html__( 'Search', 'certificate-validation-plugin' ); ?>
+				<?php echo esc_html( $view_strings['button'] ); ?>
 			</button>
 		</div>
 	</form>

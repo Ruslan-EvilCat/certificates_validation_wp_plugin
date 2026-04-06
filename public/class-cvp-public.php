@@ -43,7 +43,8 @@ class CVP_Public {
 	 */
 	public function render_shortcode() {
 		$this->enqueue_assets();
-		$input_id = 'cvp-certificate-code-' . wp_rand( 1000, 999999 );
+		$input_id     = 'cvp-certificate-code-' . wp_rand( 1000, 999999 );
+		$view_strings = $this->get_shortcode_view_strings();
 
 		ob_start();
 		require CVP_PLUGIN_DIR . 'public/views/shortcode-certificate-validation.php';
@@ -82,17 +83,74 @@ class CVP_Public {
 					'loading'  => __( 'Searching...', 'certificate-validation-plugin' ),
 					'notFound' => __( 'Certificate not found', 'certificate-validation-plugin' ),
 					'error'    => __( 'An unexpected error occurred. Please try again.', 'certificate-validation-plugin' ),
-					'code'     => __( 'Certificate Code', 'certificate-validation-plugin' ),
-					'name'     => __( 'Name', 'certificate-validation-plugin' ),
-					'surname'  => __( 'Surname', 'certificate-validation-plugin' ),
-					'course'   => __( 'Course', 'certificate-validation-plugin' ),
-					'hours'    => __( 'Hours', 'certificate-validation-plugin' ),
-					'ects'     => __( 'ECTS Hours', 'certificate-validation-plugin' ),
-					'date'     => __( 'Issued Date', 'certificate-validation-plugin' ),
-					'link'     => __( 'Course Link', 'certificate-validation-plugin' ),
-				),
+				) + $this->get_frontend_label_strings(),
 			)
 		);
+	}
+
+	/**
+	 * Returns the shortcode form strings for the configured language.
+	 *
+	 * @return array
+	 */
+	protected function get_shortcode_view_strings() {
+		$language = $this->get_frontend_display_language();
+
+		if ( 'uk' === $language ) {
+			return array(
+				'field_label' => 'Номер сертифікату',
+				'placeholder' => 'Введіть номер сертифікату',
+				'button'      => 'Пошук',
+			);
+		}
+
+		return array(
+			'field_label' => __( 'Certificate code', 'certificate-validation-plugin' ),
+			'placeholder' => __( 'Enter certificate number', 'certificate-validation-plugin' ),
+			'button'      => __( 'Search', 'certificate-validation-plugin' ),
+		);
+	}
+
+	/**
+	 * Returns the frontend result-card labels for the configured language.
+	 *
+	 * @return array
+	 */
+	protected function get_frontend_label_strings() {
+		$language = $this->get_frontend_display_language();
+
+		if ( 'uk' === $language ) {
+			return array(
+				'code'     => 'Номер сертифікату',
+				'fullName' => "Ім'я",
+				'course'   => 'Курс',
+				'hours'    => 'Кількість годин',
+				'ects'     => 'ЄКТС кредити',
+				'date'     => 'Дата видачі',
+				'link'     => 'Додаткова інформація',
+			);
+		}
+
+		return array(
+			'code'     => __( 'Certificate number (code)', 'certificate-validation-plugin' ),
+			'fullName' => __( 'Full Name', 'certificate-validation-plugin' ),
+			'course'   => __( 'Course', 'certificate-validation-plugin' ),
+			'hours'    => __( 'Hours', 'certificate-validation-plugin' ),
+			'ects'     => __( 'ECTS Hours', 'certificate-validation-plugin' ),
+			'date'     => __( 'Issued date', 'certificate-validation-plugin' ),
+			'link'     => __( 'Link to the course info (optional)', 'certificate-validation-plugin' ),
+		);
+	}
+
+	/**
+	 * Returns the configured frontend display language.
+	 *
+	 * @return string
+	 */
+	protected function get_frontend_display_language() {
+		$language = sanitize_key( (string) get_option( CVP_OPTION_FRONTEND_DISPLAY_LANGUAGE, 'en' ) );
+
+		return in_array( $language, array( 'en', 'uk' ), true ) ? $language : 'en';
 	}
 
 	/**
@@ -164,8 +222,7 @@ class CVP_Public {
 
 		return array(
 			'code'        => sanitize_text_field( $certificate['code'] ),
-			'name'        => sanitize_text_field( $certificate['name'] ),
-			'surname'     => sanitize_text_field( $certificate['surname'] ),
+			'full_name'   => sanitize_text_field( $certificate['full_name'] ),
 			'course'      => sanitize_text_field( $certificate['course'] ),
 			'hours'       => absint( $certificate['hours'] ),
 			'ects_hours'  => absint( $certificate['ects_hours'] ),

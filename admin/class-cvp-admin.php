@@ -34,10 +34,28 @@ class CVP_Admin {
 		$this->repository = new CVP_Certificate_Repository();
 
 		add_action( 'admin_menu', array( $this, 'register_menu_pages' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_post_cvp_save_certificate', array( $this, 'handle_save_certificate' ) );
 		add_action( 'admin_post_cvp_delete_certificate', array( $this, 'handle_delete_certificate' ) );
 		add_action( 'admin_post_cvp_bulk_delete_certificates', array( $this, 'handle_bulk_delete_certificates' ) );
 		add_action( 'admin_post_cvp_bulk_upload_certificates', array( $this, 'handle_bulk_upload_certificates' ) );
+	}
+
+	/**
+	 * Registers plugin settings.
+	 *
+	 * @return void
+	 */
+	public function register_settings() {
+		register_setting(
+			'cvp_tools_settings',
+			CVP_OPTION_FRONTEND_DISPLAY_LANGUAGE,
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( $this, 'sanitize_frontend_display_language' ),
+				'default'           => 'en',
+			)
+		);
 	}
 
 	/**
@@ -173,6 +191,8 @@ class CVP_Admin {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You do not have permission to access this page.', 'certificate-validation-plugin' ) );
 		}
+
+		$frontend_language = $this->get_frontend_display_language();
 
 		require CVP_PLUGIN_DIR . 'admin/views/page-tools.php';
 	}
@@ -495,8 +515,7 @@ class CVP_Admin {
 		return array(
 			'id'          => 0,
 			'code'        => '',
-			'name'        => '',
-			'surname'     => '',
+			'full_name'   => '',
 			'course'      => '',
 			'hours'       => '',
 			'ects_hours'  => '',
@@ -520,8 +539,7 @@ class CVP_Admin {
 
 		return array(
 			'code'        => $code,
-			'name'        => isset( $source['name'] ) ? sanitize_text_field( wp_unslash( $source['name'] ) ) : '',
-			'surname'     => isset( $source['surname'] ) ? sanitize_text_field( wp_unslash( $source['surname'] ) ) : '',
+			'full_name'   => isset( $source['full_name'] ) ? sanitize_text_field( wp_unslash( $source['full_name'] ) ) : '',
 			'course'      => isset( $source['course'] ) ? sanitize_text_field( wp_unslash( $source['course'] ) ) : '',
 			'hours'       => isset( $source['hours'] ) ? trim( sanitize_text_field( wp_unslash( $source['hours'] ) ) ) : '',
 			'ects_hours'  => isset( $source['ects_hours'] ) ? trim( sanitize_text_field( wp_unslash( $source['ects_hours'] ) ) ) : '',
@@ -820,5 +838,39 @@ class CVP_Admin {
 	 */
 	protected function get_bulk_upload_state_key() {
 		return 'cvp_certificate_bulk_upload_state_' . get_current_user_id();
+	}
+
+	/**
+	 * Returns the configured frontend display language.
+	 *
+	 * @return string
+	 */
+	protected function get_frontend_display_language() {
+		$language = get_option( CVP_OPTION_FRONTEND_DISPLAY_LANGUAGE, 'en' );
+
+		return $this->sanitize_frontend_display_language( $language );
+	}
+
+	/**
+	 * Sanitizes the frontend display language setting.
+	 *
+	 * @param string $language Language value.
+	 * @return string
+	 */
+	public function sanitize_frontend_display_language( $language ) {
+		$language = sanitize_key( (string) $language );
+
+		if ( ! in_array( $language, array( 'en', 'uk' ), true ) ) {
+			add_settings_error(
+				CVP_OPTION_FRONTEND_DISPLAY_LANGUAGE,
+				'cvp_invalid_frontend_language',
+				__( 'Invalid frontend display language selected.', 'certificate-validation-plugin' ),
+				'error'
+			);
+
+			return 'en';
+		}
+
+		return $language;
 	}
 }

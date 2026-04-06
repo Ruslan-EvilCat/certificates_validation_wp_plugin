@@ -48,8 +48,7 @@ class CVP_Certificates_List_Table extends WP_List_Table {
 		return array(
 			'cb'          => '<input type="checkbox" />',
 			'code'        => esc_html__( 'Code', 'certificate-validation-plugin' ),
-			'name'        => esc_html__( 'Name', 'certificate-validation-plugin' ),
-			'surname'     => esc_html__( 'Surname', 'certificate-validation-plugin' ),
+			'full_name'   => esc_html__( 'Full name', 'certificate-validation-plugin' ),
 			'course'      => esc_html__( 'Course', 'certificate-validation-plugin' ),
 			'issued_date' => esc_html__( 'Issued Date', 'certificate-validation-plugin' ),
 			'created_at'  => esc_html__( 'Created At', 'certificate-validation-plugin' ),

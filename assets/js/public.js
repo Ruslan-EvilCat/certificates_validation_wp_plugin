@@ -29,13 +29,12 @@
 		var link;
 
 		card.className = 'cvp-card';
-		card.appendChild(createField(strings.code || 'Certificate Code', certificate.code || ''));
-		card.appendChild(createField(strings.name || 'Name', certificate.name || ''));
-		card.appendChild(createField(strings.surname || 'Surname', certificate.surname || ''));
+		card.appendChild(createField(strings.code || 'Certificate number (code)', certificate.code || ''));
+		card.appendChild(createField(strings.fullName || 'Full Name', certificate.full_name || ''));
 		card.appendChild(createField(strings.course || 'Course', certificate.course || ''));
 		card.appendChild(createField(strings.hours || 'Hours', String(certificate.hours || 0)));
 		card.appendChild(createField(strings.ects || 'ECTS Hours', String(certificate.ects_hours || 0)));
-		card.appendChild(createField(strings.date || 'Issued Date', certificate.issued_date || ''));
+		card.appendChild(createField(strings.date || 'Issued date', certificate.issued_date || ''));
 
 		if (certificate.course_link) {
 			linkRow = document.createElement('div');
@@ -46,7 +45,7 @@
 			linkLabel.className = 'cvp-card-label';
 			link.className = 'cvp-card-link';
 
-			linkLabel.textContent = strings.link || 'Course Link';
+			linkLabel.textContent = strings.link || 'Link to the course info (optional)';
 			link.textContent = certificate.course_link;
 			link.href = certificate.course_link;
 			link.target = '_blank';

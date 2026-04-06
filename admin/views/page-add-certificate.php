@@ -63,29 +63,15 @@ $form_notice_type = ! empty( $form_state['notice_type'] ) ? $form_state['notice_
 				</tr>
 				<tr>
 					<th scope="row">
-						<label for="cvp-name"><?php echo esc_html__( 'Name', 'certificate-validation-plugin' ); ?></label>
+						<label for="cvp-full-name"><?php echo esc_html__( 'Full name', 'certificate-validation-plugin' ); ?></label>
 					</th>
 					<td>
 						<input
-							name="name"
+							name="full_name"
 							type="text"
-							id="cvp-name"
+							id="cvp-full-name"
 							class="regular-text"
-							value="<?php echo esc_attr( $certificate['name'] ); ?>"
-						/>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
-						<label for="cvp-surname"><?php echo esc_html__( 'Surname', 'certificate-validation-plugin' ); ?></label>
-					</th>
-					<td>
-						<input
-							name="surname"
-							type="text"
-							id="cvp-surname"
-							class="regular-text"
-							value="<?php echo esc_attr( $certificate['surname'] ); ?>"
+							value="<?php echo esc_attr( $certificate['full_name'] ); ?>"
 						/>
 					</td>
 				</tr>

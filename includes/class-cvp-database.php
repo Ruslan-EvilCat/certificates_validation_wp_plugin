@@ -48,8 +48,7 @@ class CVP_Database {
 		$sql = "CREATE TABLE {$table_name} (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			code varchar(191) NOT NULL,
-			name varchar(191) NOT NULL,
-			surname varchar(191) NOT NULL,
+			full_name varchar(255) NOT NULL,
 			course varchar(255) NOT NULL,
 			hours int(11) NOT NULL DEFAULT 0,
 			ects_hours int(11) NOT NULL DEFAULT 0,
@@ -72,6 +71,7 @@ class CVP_Database {
 	 */
 	public static function install() {
 		self::create_table();
+		self::migrate_legacy_name_columns();
 		self::update_schema_version();
 	}
 
@@ -112,5 +112,60 @@ class CVP_Database {
 	 */
 	public static function update_schema_version() {
 		update_option( self::OPTION_DB_VERSION, CVP_DB_VERSION );
+	}
+
+	/**
+	 * Migrates legacy name and surname columns into full_name.
+	 *
+	 * @return void
+	 */
+	protected static function migrate_legacy_name_columns() {
+		global $wpdb;
+
+		$table_name      = self::get_table_name();
+		$has_full_name   = self::column_exists( $table_name, 'full_name' );
+		$has_name        = self::column_exists( $table_name, 'name' );
+		$has_surname     = self::column_exists( $table_name, 'surname' );
+
+		if ( ! $has_full_name ) {
+			return;
+		}
+
+		if ( $has_name || $has_surname ) {
+			$name_sql    = $has_name ? 'name' : "''";
+			$surname_sql = $has_surname ? 'surname' : "''";
+
+			$wpdb->query(
+				"UPDATE {$table_name}
+				SET full_name = TRIM(CONCAT_WS(' ', {$name_sql}, {$surname_sql}))
+				WHERE (full_name = '' OR full_name IS NULL)"
+			);
+		}
+
+		if ( $has_name ) {
+			$wpdb->query( "ALTER TABLE {$table_name} DROP COLUMN name" );
+		}
+
+		if ( $has_surname ) {
+			$wpdb->query( "ALTER TABLE {$table_name} DROP COLUMN surname" );
+		}
+	}
+
+	/**
+	 * Determines whether a table column exists.
+	 *
+	 * @param string $table_name Table name.
+	 * @param string $column_name Column name.
+	 * @return bool
+	 */
+	protected static function column_exists( $table_name, $column_name ) {
+		global $wpdb;
+
+		$sql = $wpdb->prepare(
+			'SHOW COLUMNS FROM `' . esc_sql( $table_name ) . '` LIKE %s',
+			$column_name
+		);
+
+		return null !== $wpdb->get_var( $sql );
 	}
 }

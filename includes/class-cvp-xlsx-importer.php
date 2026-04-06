@@ -21,8 +21,7 @@ class CVP_XLSX_Importer {
 	 */
 	const EXPECTED_HEADERS = array(
 		'code',
-		'name',
-		'surname',
+		'full_name',
 		'course',
 		'hours',
 		'ects_hours',
@@ -187,12 +186,11 @@ class CVP_XLSX_Importer {
 
 		$required_fields = array(
 			'code'        => __( 'missing code', 'certificate-validation-plugin' ),
-			'name'        => __( 'missing name', 'certificate-validation-plugin' ),
-			'surname'     => __( 'missing surname', 'certificate-validation-plugin' ),
+			'full_name'   => __( 'missing full name', 'certificate-validation-plugin' ),
 			'course'      => __( 'missing course', 'certificate-validation-plugin' ),
 			'hours'       => __( 'missing hours', 'certificate-validation-plugin' ),
-			'ects_hours'  => __( 'missing ects_hours', 'certificate-validation-plugin' ),
-			'issued_date' => __( 'missing issued_date', 'certificate-validation-plugin' ),
+			'ects_hours'  => __( 'missing ECTS hours', 'certificate-validation-plugin' ),
+			'issued_date' => __( 'missing issued date', 'certificate-validation-plugin' ),
 		);
 
 		foreach ( $required_fields as $field_key => $message ) {
@@ -281,8 +279,7 @@ class CVP_XLSX_Importer {
 	protected function sanitize_row_data( $row_data ) {
 		return array(
 			'code'        => strtoupper( trim( sanitize_text_field( $row_data['code'] ) ) ),
-			'name'        => sanitize_text_field( $row_data['name'] ),
-			'surname'     => sanitize_text_field( $row_data['surname'] ),
+			'full_name'   => sanitize_text_field( $row_data['full_name'] ),
 			'course'      => sanitize_text_field( $row_data['course'] ),
 			'hours'       => trim( sanitize_text_field( $row_data['hours'] ) ),
 			'ects_hours'  => trim( sanitize_text_field( $row_data['ects_hours'] ) ),

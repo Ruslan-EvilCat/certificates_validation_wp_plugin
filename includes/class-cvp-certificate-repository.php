@@ -40,7 +40,7 @@ class CVP_Certificate_Repository {
 		}
 
 		$table_name = CVP_Database::get_table_name();
-		$sql        = "SELECT id, code, name, surname, course, hours, ects_hours, issued_date, course_link, created_at, updated_at
+		$sql        = "SELECT id, code, full_name, course, hours, ects_hours, issued_date, course_link, created_at, updated_at
 			FROM {$table_name}
 			WHERE id = %d";
 
@@ -68,7 +68,7 @@ class CVP_Certificate_Repository {
 		}
 
 		$table_name = CVP_Database::get_table_name();
-		$sql        = "SELECT id, code, name, surname, course, hours, ects_hours, issued_date, course_link, created_at, updated_at
+		$sql        = "SELECT id, code, full_name, course, hours, ects_hours, issued_date, course_link, created_at, updated_at
 			FROM {$table_name}
 			WHERE code = %s";
 
@@ -132,7 +132,7 @@ class CVP_Certificate_Repository {
 		$offset   = ( $page - 1 ) * $per_page;
 
 		$table_name = CVP_Database::get_table_name();
-		$sql        = "SELECT id, code, name, surname, course, issued_date, created_at, updated_at
+		$sql        = "SELECT id, code, full_name, course, issued_date, created_at, updated_at
 			FROM {$table_name}";
 		$params     = array();
 
@@ -190,8 +190,7 @@ class CVP_Certificate_Repository {
 			$table_name,
 			array(
 				'code'       => $data['code'],
-				'name'       => $data['name'],
-				'surname'    => $data['surname'],
+				'full_name'  => $data['full_name'],
 				'course'     => $data['course'],
 				'hours'      => $data['hours'],
 				'ects_hours' => $data['ects_hours'],
@@ -201,7 +200,6 @@ class CVP_Certificate_Repository {
 				'updated_at' => $timestamp,
 			),
 			array(
-				'%s',
 				'%s',
 				'%s',
 				'%s',
@@ -242,8 +240,7 @@ class CVP_Certificate_Repository {
 			$table_name,
 			array(
 				'code'       => $data['code'],
-				'name'       => $data['name'],
-				'surname'    => $data['surname'],
+				'full_name'  => $data['full_name'],
 				'course'     => $data['course'],
 				'hours'      => $data['hours'],
 				'ects_hours' => $data['ects_hours'],
@@ -255,7 +252,6 @@ class CVP_Certificate_Repository {
 				'id' => $certificate_id,
 			),
 			array(
-				'%s',
 				'%s',
 				'%s',
 				'%s',

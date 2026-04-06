@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<p>
 		<?php
 		echo esc_html__(
-			'Upload an .xlsx file with these exact headers: code | name | surname | course | hours | ects_hours | issued_date | link',
+			'Upload an .xlsx file with these exact headers: code | full_name | course | hours | ects_hours | issued_date | link',
 			'certificate-validation-plugin'
 		);
 		?>
