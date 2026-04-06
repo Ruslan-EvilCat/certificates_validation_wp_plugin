@@ -216,7 +216,7 @@ class CVP_Public {
 			$timestamp = strtotime( $certificate['issued_date'] );
 
 			if ( false !== $timestamp ) {
-				$issued_date = wp_date( get_option( 'date_format' ), $timestamp );
+				$issued_date = $this->format_issued_date( $timestamp );
 			}
 		}
 
@@ -229,5 +229,39 @@ class CVP_Public {
 			'issued_date' => $issued_date,
 			'course_link' => ! empty( $certificate['course_link'] ) ? esc_url_raw( $certificate['course_link'] ) : '',
 		);
+	}
+
+	/**
+	 * Formats the issued date for the configured frontend language.
+	 *
+	 * @param int $timestamp Unix timestamp.
+	 * @return string
+	 */
+	protected function format_issued_date( $timestamp ) {
+		if ( 'uk' !== $this->get_frontend_display_language() ) {
+			return wp_date( get_option( 'date_format' ), $timestamp );
+		}
+
+		$month_names = array(
+			1  => 'січня',
+			2  => 'лютого',
+			3  => 'березня',
+			4  => 'квітня',
+			5  => 'травня',
+			6  => 'червня',
+			7  => 'липня',
+			8  => 'серпня',
+			9  => 'вересня',
+			10 => 'жовтня',
+			11 => 'листопада',
+			12 => 'грудня',
+		);
+
+		$month_number = (int) wp_date( 'n', $timestamp );
+		$day          = wp_date( 'j', $timestamp );
+		$year         = wp_date( 'Y', $timestamp );
+		$month_name   = isset( $month_names[ $month_number ] ) ? $month_names[ $month_number ] : wp_date( 'F', $timestamp );
+
+		return sprintf( '%1$s %2$s %3$s', $day, $month_name, $year );
 	}
 }

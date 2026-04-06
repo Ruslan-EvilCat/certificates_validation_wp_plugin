@@ -1,12 +1,13 @@
 <?php
 /**
  * Plugin Name:       Certificate Validation Plugin
- * Plugin URI:        https://example.com/
+ * Plugin URI:        https://github.com/Ruslan-EvilCat/certificates_validation_wp_plugin
  * Description:       Validate certificates on the frontend and manage certificates in the WordPress admin area.
  * Version:           0.1.1
  * Requires at least: 6.5
  * Requires PHP:      7.4
- * Author:            Placeholder
+ * Author:            Ruslan EvilCat
+ * Author URI:        https://www.neonpurple-agency.com/
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       certificate-validation-plugin
