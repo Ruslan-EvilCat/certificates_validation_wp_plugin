@@ -226,7 +226,7 @@ class CVP_XLSX_Importer {
 			}
 		}
 
-		if ( '' !== $row_data['hours'] && ! is_numeric( $row_data['hours'] ) ) {
+		if ( '' !== $row_data['hours'] && ! is_numeric( str_replace( ',', '.', $row_data['hours'] ) ) ) {
 			$errors[] = sprintf(
 				/* translators: %d: row number. */
 				__( 'Row %d: hours must be numeric', 'certificate-validation-plugin' ),
@@ -234,7 +234,7 @@ class CVP_XLSX_Importer {
 			);
 		}
 
-		if ( '' !== $row_data['ects_hours'] && ! is_numeric( $row_data['ects_hours'] ) ) {
+		if ( '' !== $row_data['ects_hours'] && ! is_numeric( str_replace( ',', '.', $row_data['ects_hours'] ) ) ) {
 			$errors[] = sprintf(
 				/* translators: %d: row number. */
 				__( 'Row %d: ects_hours must be numeric', 'certificate-validation-plugin' ),
@@ -261,8 +261,8 @@ class CVP_XLSX_Importer {
 			);
 		}
 
-		$row_data['hours']      = (int) $row_data['hours'];
-		$row_data['ects_hours'] = (int) $row_data['ects_hours'];
+		$row_data['hours']      = $this->normalize_decimal_value( $row_data['hours'] );
+		$row_data['ects_hours'] = $this->normalize_decimal_value( $row_data['ects_hours'] );
 
 		return array(
 			'errors' => array(),
@@ -281,11 +281,25 @@ class CVP_XLSX_Importer {
 			'code'        => strtoupper( trim( sanitize_text_field( $row_data['code'] ) ) ),
 			'full_name'   => sanitize_text_field( $row_data['full_name'] ),
 			'course'      => sanitize_text_field( $row_data['course'] ),
-			'hours'       => trim( sanitize_text_field( $row_data['hours'] ) ),
-			'ects_hours'  => trim( sanitize_text_field( $row_data['ects_hours'] ) ),
+			'hours'       => str_replace( ',', '.', trim( sanitize_text_field( $row_data['hours'] ) ) ),
+			'ects_hours'  => str_replace( ',', '.', trim( sanitize_text_field( $row_data['ects_hours'] ) ) ),
 			'issued_date' => trim( sanitize_text_field( $row_data['issued_date'] ) ),
 			'course_link' => '' !== trim( $row_data['link'] ) ? esc_url_raw( trim( $row_data['link'] ) ) : '',
 		);
+	}
+
+	/**
+	 * Normalizes a decimal value for database storage.
+	 *
+	 * @param string|float|int $value Numeric value.
+	 * @return string
+	 */
+	protected function normalize_decimal_value( $value ) {
+		$value = (float) str_replace( ',', '.', (string) $value );
+		$value = number_format( $value, 2, '.', '' );
+		$value = rtrim( rtrim( $value, '0' ), '.' );
+
+		return '' === $value ? '0' : $value;
 	}
 
 	/**

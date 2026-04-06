@@ -50,8 +50,8 @@ class CVP_Database {
 			code varchar(191) NOT NULL,
 			full_name varchar(255) NOT NULL,
 			course varchar(255) NOT NULL,
-			hours int(11) NOT NULL DEFAULT 0,
-			ects_hours int(11) NOT NULL DEFAULT 0,
+			hours decimal(10,2) NOT NULL DEFAULT 0.00,
+			ects_hours decimal(10,2) NOT NULL DEFAULT 0.00,
 			issued_date date NOT NULL,
 			course_link text NULL,
 			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -72,6 +72,7 @@ class CVP_Database {
 	public static function install() {
 		self::create_table();
 		self::migrate_legacy_name_columns();
+		self::migrate_hour_columns_to_decimal();
 		self::update_schema_version();
 	}
 
@@ -149,6 +150,23 @@ class CVP_Database {
 		if ( $has_surname ) {
 			$wpdb->query( "ALTER TABLE {$table_name} DROP COLUMN surname" );
 		}
+	}
+
+	/**
+	 * Ensures hours columns support decimal values.
+	 *
+	 * @return void
+	 */
+	protected static function migrate_hour_columns_to_decimal() {
+		global $wpdb;
+
+		$table_name = self::get_table_name();
+
+		$wpdb->query(
+			"ALTER TABLE {$table_name}
+			MODIFY COLUMN hours decimal(10,2) NOT NULL DEFAULT 0.00,
+			MODIFY COLUMN ects_hours decimal(10,2) NOT NULL DEFAULT 0.00"
+		);
 	}
 
 	/**

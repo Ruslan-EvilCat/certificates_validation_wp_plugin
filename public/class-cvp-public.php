@@ -224,8 +224,8 @@ class CVP_Public {
 			'code'        => sanitize_text_field( $certificate['code'] ),
 			'full_name'   => sanitize_text_field( $certificate['full_name'] ),
 			'course'      => sanitize_text_field( $certificate['course'] ),
-			'hours'       => absint( $certificate['hours'] ),
-			'ects_hours'  => absint( $certificate['ects_hours'] ),
+			'hours'       => $this->format_decimal_value_for_display( $certificate['hours'] ),
+			'ects_hours'  => $this->format_decimal_value_for_display( $certificate['ects_hours'] ),
 			'issued_date' => $issued_date,
 			'course_link' => ! empty( $certificate['course_link'] ) ? esc_url_raw( $certificate['course_link'] ) : '',
 		);
@@ -263,5 +263,26 @@ class CVP_Public {
 		$month_name   = isset( $month_names[ $month_number ] ) ? $month_names[ $month_number ] : wp_date( 'F', $timestamp );
 
 		return sprintf( '%1$s %2$s %3$s', $day, $month_name, $year );
+	}
+
+	/**
+	 * Formats a decimal value for frontend display.
+	 *
+	 * @param string|float|int $value Numeric value.
+	 * @return string
+	 */
+	protected function format_decimal_value_for_display( $value ) {
+		$normalized = number_format( (float) str_replace( ',', '.', (string) $value ), 2, '.', '' );
+		$normalized = rtrim( rtrim( $normalized, '0' ), '.' );
+
+		if ( '' === $normalized ) {
+			$normalized = '0';
+		}
+
+		if ( 'uk' === $this->get_frontend_display_language() ) {
+			return str_replace( '.', ',', $normalized );
+		}
+
+		return $normalized;
 	}
 }

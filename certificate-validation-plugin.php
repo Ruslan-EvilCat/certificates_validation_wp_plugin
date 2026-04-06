@@ -3,7 +3,7 @@
  * Plugin Name:       Certificate Validation Plugin
  * Plugin URI:        https://github.com/Ruslan-EvilCat/certificates_validation_wp_plugin
  * Description:       Validate certificates on the frontend and manage certificates in the WordPress admin area.
- * Version:           0.1.1
+ * Version:           0.1.2
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Ruslan EvilCat
@@ -20,8 +20,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CVP_VERSION', '0.1.1' );
-define( 'CVP_DB_VERSION', '1.1.0' );
+define( 'CVP_VERSION', '0.1.2' );
+define( 'CVP_DB_VERSION', '1.2.0' );
 define( 'CVP_OPTION_FRONTEND_DISPLAY_LANGUAGE', 'cvp_frontend_display_language' );
 define( 'CVP_PLUGIN_FILE', __FILE__ );
 define( 'CVP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );

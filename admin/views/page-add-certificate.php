@@ -96,10 +96,10 @@ $form_notice_type = ! empty( $form_state['notice_type'] ) ? $form_state['notice_
 					<td>
 						<input
 							name="hours"
-							type="number"
+							type="text"
 							id="cvp-hours"
 							class="small-text"
-							step="1"
+							inputmode="decimal"
 							value="<?php echo esc_attr( (string) $certificate['hours'] ); ?>"
 						/>
 					</td>
@@ -111,10 +111,10 @@ $form_notice_type = ! empty( $form_state['notice_type'] ) ? $form_state['notice_
 					<td>
 						<input
 							name="ects_hours"
-							type="number"
+							type="text"
 							id="cvp-ects-hours"
 							class="small-text"
-							step="1"
+							inputmode="decimal"
 							value="<?php echo esc_attr( (string) $certificate['ects_hours'] ); ?>"
 						/>
 					</td>

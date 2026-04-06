@@ -541,8 +541,8 @@ class CVP_Admin {
 			'code'        => $code,
 			'full_name'   => isset( $source['full_name'] ) ? sanitize_text_field( wp_unslash( $source['full_name'] ) ) : '',
 			'course'      => isset( $source['course'] ) ? sanitize_text_field( wp_unslash( $source['course'] ) ) : '',
-			'hours'       => isset( $source['hours'] ) ? trim( sanitize_text_field( wp_unslash( $source['hours'] ) ) ) : '',
-			'ects_hours'  => isset( $source['ects_hours'] ) ? trim( sanitize_text_field( wp_unslash( $source['ects_hours'] ) ) ) : '',
+			'hours'       => isset( $source['hours'] ) ? $this->sanitize_decimal_value( wp_unslash( $source['hours'] ) ) : '',
+			'ects_hours'  => isset( $source['ects_hours'] ) ? $this->sanitize_decimal_value( wp_unslash( $source['ects_hours'] ) ) : '',
 			'issued_date' => isset( $source['issued_date'] ) ? sanitize_text_field( wp_unslash( $source['issued_date'] ) ) : '',
 			'course_link' => isset( $source['course_link'] ) ? esc_url_raw( trim( wp_unslash( $source['course_link'] ) ) ) : '',
 		);
@@ -576,13 +576,13 @@ class CVP_Admin {
 		if ( ! is_numeric( $data['hours'] ) ) {
 			$errors[] = __( 'Hours must be numeric.', 'certificate-validation-plugin' );
 		} else {
-			$data['hours'] = (int) $data['hours'];
+			$data['hours'] = $this->normalize_decimal_value( $data['hours'] );
 		}
 
 		if ( ! is_numeric( $data['ects_hours'] ) ) {
 			$errors[] = __( 'ECTS Hours must be numeric.', 'certificate-validation-plugin' );
 		} else {
-			$data['ects_hours'] = (int) $data['ects_hours'];
+			$data['ects_hours'] = $this->normalize_decimal_value( $data['ects_hours'] );
 		}
 
 		if ( '' === $data['issued_date'] || ! $this->is_valid_date( $data['issued_date'] ) ) {
@@ -606,6 +606,32 @@ class CVP_Admin {
 		}
 
 		return $date_time->format( 'Y-m-d' ) === $date;
+	}
+
+	/**
+	 * Sanitizes a decimal input value and normalizes comma separators.
+	 *
+	 * @param string $value Raw numeric value.
+	 * @return string
+	 */
+	protected function sanitize_decimal_value( $value ) {
+		$value = trim( sanitize_text_field( $value ) );
+
+		return str_replace( ',', '.', $value );
+	}
+
+	/**
+	 * Normalizes a decimal value for database storage.
+	 *
+	 * @param string|float|int $value Numeric value.
+	 * @return string
+	 */
+	protected function normalize_decimal_value( $value ) {
+		$value = (float) str_replace( ',', '.', (string) $value );
+		$value = number_format( $value, 2, '.', '' );
+		$value = rtrim( rtrim( $value, '0' ), '.' );
+
+		return '' === $value ? '0' : $value;
 	}
 
 	/**
