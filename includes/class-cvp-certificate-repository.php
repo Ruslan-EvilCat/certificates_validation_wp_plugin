@@ -175,6 +175,47 @@ class CVP_Certificate_Repository {
 	}
 
 	/**
+	 * Returns certificate rows for export.
+	 *
+	 * @param string $from_date Optional start date.
+	 * @param string $to_date Optional end date.
+	 * @return array
+	 */
+	public function get_certificates_for_export( $from_date = '', $to_date = '' ) {
+		global $wpdb;
+
+		$from_date  = sanitize_text_field( $from_date );
+		$to_date    = sanitize_text_field( $to_date );
+		$table_name = CVP_Database::get_table_name();
+		$sql        = "SELECT code, full_name, course, hours, ects_hours, issued_date, course_link AS link
+			FROM {$table_name}";
+		$where      = array();
+		$params     = array();
+
+		if ( '' !== $from_date ) {
+			$where[]  = 'issued_date >= %s';
+			$params[] = $from_date;
+		}
+
+		if ( '' !== $to_date ) {
+			$where[]  = 'issued_date <= %s';
+			$params[] = $to_date;
+		}
+
+		if ( ! empty( $where ) ) {
+			$sql .= ' WHERE ' . implode( ' AND ', $where );
+		}
+
+		$sql .= ' ORDER BY issued_date DESC, id DESC';
+
+		if ( ! empty( $params ) ) {
+			return $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A );
+		}
+
+		return $wpdb->get_results( $sql, ARRAY_A );
+	}
+
+	/**
 	 * Inserts a certificate.
 	 *
 	 * @param array $data Sanitized certificate data.

@@ -10,6 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once CVP_PLUGIN_DIR . 'includes/class-cvp-certificate-repository.php';
+require_once CVP_PLUGIN_DIR . 'includes/class-cvp-certificate-exporter.php';
 require_once CVP_PLUGIN_DIR . 'includes/class-cvp-xlsx-importer.php';
 require_once CVP_PLUGIN_DIR . 'admin/class-cvp-certificates-list-table.php';
 
@@ -39,6 +40,7 @@ class CVP_Admin {
 		add_action( 'admin_post_cvp_delete_certificate', array( $this, 'handle_delete_certificate' ) );
 		add_action( 'admin_post_cvp_bulk_delete_certificates', array( $this, 'handle_bulk_delete_certificates' ) );
 		add_action( 'admin_post_cvp_bulk_upload_certificates', array( $this, 'handle_bulk_upload_certificates' ) );
+		add_action( 'admin_post_cvp_export_certificates', array( $this, 'handle_export_certificates' ) );
 	}
 
 	/**
@@ -193,6 +195,12 @@ class CVP_Admin {
 		}
 
 		$frontend_language = $this->get_frontend_display_language();
+		$tools_state       = $this->consume_tools_state();
+		$export_filters    = $this->get_default_export_filters();
+
+		if ( ! empty( $tools_state['data'] ) && is_array( $tools_state['data'] ) ) {
+			$export_filters = array_merge( $export_filters, $tools_state['data'] );
+		}
 
 		require CVP_PLUGIN_DIR . 'admin/views/page-tools.php';
 	}
@@ -507,6 +515,81 @@ class CVP_Admin {
 	}
 
 	/**
+	 * Handles certificate export requests.
+	 *
+	 * @return void
+	 */
+	public function handle_export_certificates() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'certificate-validation-plugin' ) );
+		}
+
+		check_admin_referer( 'cvp_export_certificates', 'cvp_export_certificates_nonce' );
+
+		$export_format  = isset( $_POST['cvp_export_format'] ) ? sanitize_key( wp_unslash( $_POST['cvp_export_format'] ) ) : '';
+		$export_filters = $this->sanitize_export_filters( $_POST );
+		$validation     = $this->validate_export_filters( $export_filters );
+
+		if ( ! in_array( $export_format, array( 'csv', 'xlsx' ), true ) ) {
+			$this->set_tools_state(
+				array(
+					'notice_type' => 'error',
+					'message'     => __( 'Invalid export format selected.', 'certificate-validation-plugin' ),
+					'data'        => $export_filters,
+				)
+			);
+
+			wp_safe_redirect( $this->get_tools_page_url() );
+			exit;
+		}
+
+		if ( ! empty( $validation ) ) {
+			$this->set_tools_state(
+				array(
+					'notice_type' => 'error',
+					'message'     => $validation[0],
+					'data'        => $export_filters,
+				)
+			);
+
+			wp_safe_redirect( $this->get_tools_page_url() );
+			exit;
+		}
+
+		$certificates = $this->repository->get_certificates_for_export(
+			$export_filters['from_date'],
+			$export_filters['to_date']
+		);
+		$exporter     = new CVP_Certificate_Exporter();
+		$file_name    = sprintf(
+			'certificates-export-%s.%s',
+			current_time( 'Y-m-d' ),
+			$export_format
+		);
+
+		if ( 'csv' === $export_format ) {
+			$result = $exporter->download_csv( $certificates, $file_name );
+		} else {
+			$result = $exporter->download_xlsx( $certificates, $file_name );
+		}
+
+		if ( is_wp_error( $result ) ) {
+			$this->set_tools_state(
+				array(
+					'notice_type' => 'error',
+					'message'     => $result->get_error_message(),
+					'data'        => $export_filters,
+				)
+			);
+
+			wp_safe_redirect( $this->get_tools_page_url() );
+			exit;
+		}
+
+		exit;
+	}
+
+	/**
 	 * Returns the default certificate form data.
 	 *
 	 * @return array
@@ -686,6 +769,20 @@ class CVP_Admin {
 	}
 
 	/**
+	 * Returns the tools page URL.
+	 *
+	 * @return string
+	 */
+	protected function get_tools_page_url() {
+		return add_query_arg(
+			array(
+				'page' => 'cvp-tools',
+			),
+			admin_url( 'admin.php' )
+		);
+	}
+
+	/**
 	 * Stores form state across redirects.
 	 *
 	 * @param array $state Form state.
@@ -773,6 +870,37 @@ class CVP_Admin {
 	}
 
 	/**
+	 * Stores tools page state across redirects.
+	 *
+	 * @param array $state Tools page state.
+	 * @return void
+	 */
+	protected function set_tools_state( $state ) {
+		set_transient(
+			$this->get_tools_state_key(),
+			array(
+				'notice_type' => $this->sanitize_notice_type( $state['notice_type'] ?? '' ),
+				'message'     => isset( $state['message'] ) ? sanitize_text_field( $state['message'] ) : '',
+				'data'        => $this->sanitize_export_filters( isset( $state['data'] ) && is_array( $state['data'] ) ? $state['data'] : array() ),
+			),
+			MINUTE_IN_SECONDS * 5
+		);
+	}
+
+	/**
+	 * Returns and clears stored tools page state.
+	 *
+	 * @return array
+	 */
+	protected function consume_tools_state() {
+		$tools_state = get_transient( $this->get_tools_state_key() );
+
+		delete_transient( $this->get_tools_state_key() );
+
+		return is_array( $tools_state ) ? $tools_state : array();
+	}
+
+	/**
 	 * Returns the current user's form state key.
 	 *
 	 * @return string
@@ -788,6 +916,15 @@ class CVP_Admin {
 	 */
 	protected function get_list_state_key() {
 		return 'cvp_certificate_list_state_' . get_current_user_id();
+	}
+
+	/**
+	 * Returns the current user's tools state key.
+	 *
+	 * @return string
+	 */
+	protected function get_tools_state_key() {
+		return 'cvp_certificate_tools_state_' . get_current_user_id();
 	}
 
 	/**
@@ -812,6 +949,60 @@ class CVP_Admin {
 		}
 
 		return $args;
+	}
+
+	/**
+	 * Returns the default export filter values.
+	 *
+	 * @return array
+	 */
+	protected function get_default_export_filters() {
+		return array(
+			'from_date' => '',
+			'to_date'   => '',
+		);
+	}
+
+	/**
+	 * Sanitizes export filter input.
+	 *
+	 * @param array $source Raw request data.
+	 * @return array
+	 */
+	protected function sanitize_export_filters( $source ) {
+		return array(
+			'from_date' => isset( $source['from_date'] ) ? sanitize_text_field( wp_unslash( $source['from_date'] ) ) : '',
+			'to_date'   => isset( $source['to_date'] ) ? sanitize_text_field( wp_unslash( $source['to_date'] ) ) : '',
+		);
+	}
+
+	/**
+	 * Validates export filters.
+	 *
+	 * @param array $filters Export filters.
+	 * @return array
+	 */
+	protected function validate_export_filters( $filters ) {
+		$errors = array();
+
+		if ( '' !== $filters['from_date'] && ! $this->is_valid_date( $filters['from_date'] ) ) {
+			$errors[] = __( 'From date must be a valid date in YYYY-MM-DD format.', 'certificate-validation-plugin' );
+		}
+
+		if ( '' !== $filters['to_date'] && ! $this->is_valid_date( $filters['to_date'] ) ) {
+			$errors[] = __( 'To date must be a valid date in YYYY-MM-DD format.', 'certificate-validation-plugin' );
+		}
+
+		if (
+			empty( $errors ) &&
+			'' !== $filters['from_date'] &&
+			'' !== $filters['to_date'] &&
+			$filters['from_date'] > $filters['to_date']
+		) {
+			$errors[] = __( "Invalid date range. 'From' date cannot be later than 'To' date.", 'certificate-validation-plugin' );
+		}
+
+		return $errors;
 	}
 
 	/**
